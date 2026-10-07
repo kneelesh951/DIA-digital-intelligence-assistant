@@ -1,0 +1,16 @@
+## Core
+pyyaml==6.0.2
+pywebview==5.3.2
+anthropic>=0.40.0
+
+## Speech-to-text (offline, multilingual: en/hi/de)
+faster-whisper==1.0.3
+sounddevice==0.4.7
+numpy==1.26.4
+
+## Web agent
+requests==2.32.3
+
+## Job application agent (browser automation)
+# After installing, run: playwright install chromium
+playwright==1.47.0

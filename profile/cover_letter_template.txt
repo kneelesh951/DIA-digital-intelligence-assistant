@@ -1,0 +1,10 @@
+Dear Hiring Team,
+
+I'm excited to apply for the {job_title} role at {company}. [Replace this paragraph
+with 2-3 sentences about why you're a fit — HERALD will not invent claims about your
+experience, it only fills in what you've written here and in job_profile.yaml.]
+
+Thank you for your consideration.
+
+{full_name}
+{email}

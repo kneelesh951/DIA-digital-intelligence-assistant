@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>DIA</title>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<div class="hud">
+
+  <!-- ══ TOP BAR ══ -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="brand-name" id="app-name">DIA</span>
+      <span class="brand-sub" id="app-tagline">DIGITAL INTELLIGENCE ASSISTANT</span>
+    </div>
+    <div class="topbar-center">
+      <span class="clock" id="clock">00:00:00</span>
+      <div class="date-line" id="date-line">—</div>
+    </div>
+    <div class="topbar-right">
+      <!-- Weather -->
+      <div class="weather-widget" id="weather-widget">
+        <span class="weather-icon" id="weather-icon">🌤</span>
+        <div class="weather-data">
+          <span class="weather-temp" id="weather-temp">—°C</span>
+          <span class="weather-desc" id="weather-desc">LOADING…</span>
+          <span class="weather-city" id="weather-city"></span>
+        </div>
+      </div>
+      <div class="topbar-divider"></div>
+      <div class="selector">
+        <button data-lang="en" class="lang-btn active">EN</button>
+        <button data-lang="hi" class="lang-btn">HI</button>
+        <button data-lang="de" class="lang-btn">DE</button>
+      </div>
+      <div class="selector">
+        <button data-gender="female" class="gender-btn active">F</button>
+        <button data-gender="male"   class="gender-btn">M</button>
+      </div>
+      <div class="status-pill" id="status-pill">
+        <span class="status-dot"></span>
+        <span id="status-text">STANDBY</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ AGENT DOCK ══ -->
+  <div class="agent-dock" id="agent-dock"></div>
+
+  <!-- ══ QUICK ACTIONS ══ -->
+  <div class="quick-actions">
+    <button class="qa-btn" onclick="quickAction('screenshot')">&#9635; CAPTURE</button>
+    <button class="qa-btn" onclick="quickAction('lock')">&#9711; LOCK</button>
+    <button class="qa-btn qa-mute" id="qa-mute" onclick="toggleMute()">&#9658; MUTE</button>
+    <button class="qa-btn" onclick="quickAction('spotlight')">&#10753; SEARCH</button>
+    <div class="qa-sep"></div>
+    <div class="now-playing" id="now-playing" style="display:none">
+      <span class="np-label">&#9834;</span>
+      <span class="np-track" id="np-track">—</span>
+    </div>
+    <div class="qa-sep" id="np-sep" style="display:none"></div>
+    <button class="qa-btn qa-focus" id="timer-btn" onclick="timerToggle()">&#9202; FOCUS &nbsp;<span id="timer-display">25:00</span></button>
+    <div class="qa-sep"></div>
+    <button class="qa-btn qa-brief" onclick="handleCommand('morning briefing')">&#9728; BRIEFING</button>
+  </div>
+
+  <!-- ══ MAIN 3-COLUMN ══ -->
+  <div class="hud-body">
+
+    <!-- LEFT: System health -->
+    <aside class="left-panel">
+      <div class="panel-label">SYSTEM HEALTH</div>
+
+      <div class="gauges-row">
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 80 80" class="gauge-svg">
+            <circle class="g-bg"             cx="40" cy="40" r="32"/>
+            <circle class="g-fill g-cpu"     cx="40" cy="40" r="32" id="cpu-arc"/>
+          </svg>
+          <span class="g-label">CPU</span>
+          <span class="g-val g-val-cpu" id="cpu-val">—</span>
+        </div>
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 80 80" class="gauge-svg">
+            <circle class="g-bg"             cx="40" cy="40" r="32"/>
+            <circle class="g-fill g-ram"     cx="40" cy="40" r="32" id="ram-arc"/>
+          </svg>
+          <span class="g-label">RAM</span>
+          <span class="g-val g-val-ram" id="ram-val">—</span>
+        </div>
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 80 80" class="gauge-svg">
+            <circle class="g-bg"             cx="40" cy="40" r="32"/>
+            <circle class="g-fill g-bat"     cx="40" cy="40" r="32" id="bat-arc"/>
+          </svg>
+          <span class="g-label">BAT</span>
+          <span class="g-val g-val-bat" id="bat-val">—</span>
+        </div>
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 80 80" class="gauge-svg">
+            <circle class="g-bg"             cx="40" cy="40" r="32"/>
+            <circle class="g-fill g-disk"    cx="40" cy="40" r="32" id="disk-arc"/>
+          </svg>
+          <span class="g-label">DISK</span>
+          <span class="g-val g-val-disk" id="disk-val">—</span>
+        </div>
+      </div>
+
+      <div class="stat-block">
+        <div class="st-row"><span class="st-k">CPU</span>   <span class="st-v g-val-cpu" id="lf-cpu">—</span>   <div class="st-bar-wrap"><div class="st-bar cyan"   id="bar-cpu"  style="width:0%"></div></div></div>
+        <div class="st-row"><span class="st-k">RAM</span>   <span class="st-v g-val-ram" id="ram-detail">—</span><div class="st-bar-wrap"><div class="st-bar"        id="bar-ram"  style="width:0%"></div></div></div>
+        <div class="st-row"><span class="st-k">DISK</span>  <span class="st-v g-val-disk" id="disk-detail">—</span><div class="st-bar-wrap"><div class="st-bar purple" id="bar-disk" style="width:0%"></div></div></div>
+        <div class="st-row"><span class="st-k">BAT</span>   <span class="st-v g-val-bat" id="lf-bat">—</span>   <div class="st-bar-wrap"><div class="st-bar gold"   id="bar-bat"  style="width:0%"></div></div></div>
+        <div class="st-row"><span class="st-k">UPTIME</span><span class="st-v" id="uptime-val">—</span></div>
+        <div class="st-row"><span class="st-k">STATUS</span><span class="st-v st-online">ONLINE</span></div>
+        <div class="st-row"><span class="st-k">MODE</span>  <span class="st-v" id="lf-mode">ALWAYS-ON</span></div>
+        <div class="st-row"><span class="st-k">CMDS</span>  <span class="st-v" id="lf-cmds">0</span></div>
+        <div class="st-row net-row"><span class="st-k">▲ UP</span>  <span class="st-v st-net" id="net-up">—</span></div>
+        <div class="st-row net-row"><span class="st-k">▼ DN</span>  <span class="st-v st-net" id="net-dn">—</span></div>
+      </div>
+    </aside>
+
+    <!-- CENTER: Reactor + speech -->
+    <main class="center-panel">
+      <div class="reactor-wrap" id="reactor-wrap">
+
+        <!-- Hex grid background -->
+        <svg class="hex-bg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <pattern id="hex-pat" x="0" y="0" width="46" height="40" patternUnits="userSpaceOnUse">
+              <polygon points="23,2 42,12 42,32 23,42 4,32 4,12"
+                fill="none" stroke="rgba(0,229,255,0.07)" stroke-width="0.7"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#hex-pat)"/>
+        </svg>
+
+        <!-- Corner HUD panels -->
+        <div class="corner-hud ch-tl">
+          <div class="ch-row"><span class="ch-k">NEURAL </span><span class="ch-v" id="ch-neural">████░</span></div>
+          <div class="ch-row"><span class="ch-k">SYNC   </span><span class="ch-v" id="ch-sync">99.8%</span></div>
+          <div class="ch-row"><span class="ch-k">LINK   </span><span class="ch-v ch-active">ACTIVE</span></div>
+          <div class="ch-row"><span class="ch-k">AI VER </span><span class="ch-v">v4.7.2</span></div>
+        </div>
+        <div class="corner-hud ch-tr">
+          <div class="ch-row"><span class="ch-v" id="ch-sig">▓▓▓▓░</span><span class="ch-k"> SIGNAL</span></div>
+          <div class="ch-row"><span class="ch-v" id="ch-lat">12ms</span><span class="ch-k"> LATENCY</span></div>
+          <div class="ch-row"><span class="ch-v" id="ch-freq">2.4GHz</span><span class="ch-k"> FREQ</span></div>
+          <div class="ch-row"><span class="ch-v ch-active">LOCKED</span><span class="ch-k"> QUANTUM</span></div>
+        </div>
+        <div class="corner-hud ch-bl">
+          <div class="ch-row"><span class="ch-k">SCAN   </span><span class="ch-v ch-amber" id="ch-scan">360°</span></div>
+          <div class="ch-row"><span class="ch-k">RANGE  </span><span class="ch-v" id="ch-range">∞ AU</span></div>
+          <div class="ch-row"><span class="ch-k">TARGET </span><span class="ch-v ch-active">ACQUIRED</span></div>
+          <div class="ch-row"><span class="ch-k">ENCRYPT</span><span class="ch-v">AES-512</span></div>
+        </div>
+        <div class="corner-hud ch-br">
+          <div class="ch-row"><span class="ch-v" id="ch-thr">108 THz</span><span class="ch-k"> THRPUT</span></div>
+          <div class="ch-row"><span class="ch-v" id="ch-pkt">0 pkt/s</span><span class="ch-k"> PACKETS</span></div>
+          <div class="ch-row"><span class="ch-v ch-active">SECURE</span><span class="ch-k"> CHANNEL</span></div>
+          <div class="ch-row"><span class="ch-v">DIA-OS</span><span class="ch-k"> KERNEL</span></div>
+        </div>
+
+        <!-- Side data streams -->
+        <div class="data-stream ds-left"  id="ds-left"></div>
+        <div class="data-stream ds-right" id="ds-right"></div>
+
+        <!-- Pulse rings that emanate from center -->
+        <div class="pulse-rings" aria-hidden="true">
+          <div class="pulse-ring pr1"></div>
+          <div class="pulse-ring pr2"></div>
+          <div class="pulse-ring pr3"></div>
+        </div>
+
+        <svg class="reactor-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+          <!-- Outer tick ring -->
+          <circle cx="200" cy="200" r="194" class="r-static r-outer" stroke-dasharray="2 11.4" stroke-width="1.2"/>
+          <!-- Radar sweep -->
+          <g class="r-sweep">
+            <line x1="200" y1="200" x2="200" y2="10" class="sweep-line"/>
+            <line x1="200" y1="200" x2="200" y2="10" class="sweep-glow"/>
+          </g>
+          <!-- Ring 1: slow CW — cyan -->
+          <g class="r-cw-slow">
+            <circle cx="200" cy="200" r="182" class="r-seg r-cyan" stroke-dasharray="18 9" stroke-width="1.5"/>
+          </g>
+          <!-- Ring 2: med CCW — green -->
+          <g class="r-ccw-med">
+            <circle cx="200" cy="200" r="166" class="r-seg r-green" stroke-dasharray="8 5" stroke-width="2.5"/>
+          </g>
+          <!-- Static reference -->
+          <circle cx="200" cy="200" r="152" class="r-static r-outer" stroke-width="0.7"/>
+          <!-- Ring 3: fast CW — purple -->
+          <g class="r-cw-fast">
+            <circle cx="200" cy="200" r="138" class="r-seg r-purple" stroke-dasharray="5 12" stroke-width="1.8"/>
+          </g>
+          <circle cx="200" cy="200" r="122" class="r-static r-mid" stroke-width="0.5"/>
+          <!-- Ring 4: slow CCW — cyan -->
+          <g class="r-ccw-slow">
+            <circle cx="200" cy="200" r="108" class="r-seg r-cyan" stroke-dasharray="14 7" stroke-width="2"/>
+          </g>
+          <circle cx="200" cy="200" r="92"  class="r-static r-mid" stroke-width="0.6"/>
+          <!-- Ring 5: med CW — green -->
+          <g class="r-cw-med">
+            <circle cx="200" cy="200" r="76" class="r-seg r-green" stroke-dasharray="4 9" stroke-width="3"/>
+          </g>
+          <!-- Ring 6: fast CCW — purple -->
+          <g class="r-ccw-fast">
+            <circle cx="200" cy="200" r="58" class="r-seg r-purple" stroke-dasharray="3 6" stroke-width="1.2"/>
+          </g>
+          <circle cx="200" cy="200" r="44" class="r-static r-inner" stroke-width="0.8"/>
+          <!-- Cross hairs -->
+          <line x1="6"   y1="200" x2="394" y2="200" class="r-static r-outer" stroke-width="0.4"/>
+          <line x1="200" y1="6"   x2="200" y2="394" class="r-static r-outer" stroke-width="0.4"/>
+          <line x1="54"  y1="54"  x2="346" y2="346" class="r-static r-mid"   stroke-width="0.3"/>
+          <line x1="346" y1="54"  x2="54"  y2="346" class="r-static r-mid"   stroke-width="0.3"/>
+          <!-- Core -->
+          <circle cx="200" cy="200" r="30" class="r-core-bg"/>
+          <circle cx="200" cy="200" r="22" class="r-core-ring r-cw-fast"/>
+          <circle cx="200" cy="200" r="14" class="r-core-pulse"/>
+          <circle cx="200" cy="200" r="6"  class="r-core-dot"/>
+          <!-- Cardinal ticks -->
+          <line x1="200" y1="3"   x2="200" y2="18"  class="r-static r-outer" stroke-width="2.5"/>
+          <line x1="200" y1="382" x2="200" y2="397" class="r-static r-outer" stroke-width="2.5"/>
+          <line x1="3"   y1="200" x2="18"  y2="200" class="r-static r-outer" stroke-width="2.5"/>
+          <line x1="382" y1="200" x2="397" y2="200" class="r-static r-outer" stroke-width="2.5"/>
+        </svg>
+
+        <div class="reactor-center">
+          <button class="core-button" id="core-button" title="Hold to speak">
+            <div class="cr-ring-a"></div>
+            <div class="cr-ring-b"></div>
+            <div class="cr-glow"></div>
+            <span class="core-label" id="core-label">DIA</span>
+          </button>
+          <div class="waveform" id="waveform">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div><!-- /reactor-wrap -->
+
+      <!-- ARIA speech bubble -->
+      <div class="aria-speech" id="aria-speech">
+        <div class="speech-label">DIA</div>
+        <div class="speech-body">
+          <span class="speech-prompt">▶</span>
+          <span id="speech-text">Systems online. Speak freely.</span>
+          <span class="blink-cursor">█</span>
+        </div>
+      </div>
+
+      <!-- Input -->
+      <form class="input-row" id="text-form">
+        <div class="input-wrap">
+          <span class="chevron">▶</span>
+          <input type="text" id="text-input"
+            placeholder="type a command or speak…"
+            autocomplete="off" spellcheck="false"/>
+          <button type="button" class="stop-btn" id="stop-btn" title="Stop speaking">■ STOP</button>
+        </div>
+      </form>
+    </main>
+
+    <!-- RIGHT: World Clocks + Calendar + Clipboard + Log -->
+    <aside class="right-panel">
+
+      <div class="panel-label">WORLD TIME</div>
+      <div class="world-clocks">
+        <div class="wc-row"><span class="wc-city">MUMBAI</span>  <span class="wc-time" id="wc-0">--:--</span></div>
+        <div class="wc-row"><span class="wc-city">NEW YORK</span><span class="wc-time" id="wc-1">--:--</span></div>
+        <div class="wc-row"><span class="wc-city">LONDON</span>  <span class="wc-time" id="wc-2">--:--</span></div>
+      </div>
+
+      <div class="panel-label" style="margin-top:8px">UPCOMING</div>
+      <div class="calendar-feed" id="calendar-feed">
+        <div class="cal-empty">Loading…</div>
+      </div>
+
+      <div class="panel-label" style="margin-top:8px">WATCHLIST</div>
+      <div class="watchlist-feed" id="watchlist-feed">
+        <div class="wl-empty">Say "watch AAPL" to track a stock</div>
+      </div>
+
+      <div class="panel-label" style="margin-top:8px">CLIPBOARD</div>
+      <div class="clip-feed" id="clip-feed">
+        <span class="clip-empty">Empty</span>
+      </div>
+
+      <div class="panel-label" style="margin-top:8px">SYSTEM LOG</div>
+      <div class="log-feed" id="log-feed"></div>
+
+    </aside>
+
+  </div><!-- /hud-body -->
+
+  <!-- ══ STOCKS STRIP ══ -->
+  <div class="stocks-strip" id="stocks-strip">
+    <div class="ss-col ss-g">
+      <span class="ss-hdr">&#9650; GAINERS</span>
+      <div class="ss-items" id="gainers-items"><span class="ss-loading">LOADING…</span></div>
+    </div>
+    <div class="ss-mid">
+      <span class="ss-time" id="stocks-time">--:--</span>
+      <span class="ss-src">NYSE · NASDAQ</span>
+    </div>
+    <div class="ss-col ss-l">
+      <span class="ss-hdr">&#9660; LOSERS</span>
+      <div class="ss-items" id="losers-items"><span class="ss-loading">LOADING…</span></div>
+    </div>
+  </div>
+
+  <!-- ══ AGENT TICKER ══ -->
+  <div class="agent-ticker" id="agent-ticker">
+    <span class="ticker-bullet">◆</span>
+    <span class="ticker-agent-name" id="ticker-agent">VAULT</span>
+    <div class="ticker-track">
+      <span class="ticker-text" id="ticker-text">PROCESSING…</span>
+    </div>
+    <span class="ticker-end">◆</span>
+  </div>
+
+</div><!-- /hud -->
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay" id="confirm-overlay">
+  <div class="modal">
+    <div class="modal-tl"></div><div class="modal-tr"></div>
+    <div class="modal-bl"></div><div class="modal-br"></div>
+    <div class="modal-header">
+      <span class="modal-badge" id="modal-agent-badge"></span>
+      <span class="modal-title" id="modal-title">CONFIRM ACTION</span>
+    </div>
+    <div class="modal-plan" id="modal-plan"></div>
+    <div class="modal-actions">
+      <button class="btn-abort"   id="modal-cancel">✕ ABORT</button>
+      <button class="btn-execute" id="modal-confirm">▶ EXECUTE</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

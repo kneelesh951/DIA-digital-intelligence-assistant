@@ -1,0 +1,30 @@
+# ============================================================
+# Fill this in before using the HERALD (job application) agent.
+# It is only read locally by agents/job_agent.py — nothing here
+# is sent anywhere except into the actual application forms you
+# explicitly confirm submitting.
+# ============================================================
+
+full_name: "Neel"
+email: "kneelesh951@gmail.com"
+phone: ""
+location: ""
+
+resume_path: "profile/resume.pdf"        # put your resume file in profile/
+cover_letter_template_path: "profile/cover_letter_template.txt"
+
+links:
+  linkedin: ""
+  github: ""
+  portfolio: ""
+
+work_authorization: ""     # e.g. "Authorized to work in <country>"
+notice_period: ""          # e.g. "2 weeks"
+desired_salary: ""         # leave blank to skip / let the field stay unfilled
+
+# Answers HERALD can reuse for common application questions.
+# Add more key/value pairs as you run into recurring questions.
+standard_answers:
+  years_of_experience: ""
+  willing_to_relocate: ""
+  sponsorship_required: ""

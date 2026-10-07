@@ -1,0 +1,42 @@
+# Secrets & config
+.env
+.env.*
+
+# Documentation
+*.md
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Claude internal
+.claude/
+CLAUDE_CODE_PROMPT.md
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs & temp
+*.log
+*.tmp
+*.swp
+
+# Profile data (personal info)
+profile/resume.pdf
+
+# Watchlist (runtime state)
+~/.dia_watchlist.json

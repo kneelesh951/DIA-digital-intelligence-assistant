@@ -1,0 +1,185 @@
+# ============================================================
+# ARIA — configuration
+# Rename "app.name" below to whatever you want your assistant
+# to call itself. Everything here can be changed without
+# touching any code.
+# ============================================================
+
+app:
+  name: "DIA"
+  tagline: "Digital Intelligence Assistant"
+  # v1 activation is via the mic button / holding SPACE in the HUD window.
+  # A true always-listening wake word ("Hey Aria") can be added later
+  # (see README > Roadmap) but needs an extra offline wake-word model.
+  activation_mode: "always_on"      # push_to_talk | always_on
+
+confirmation:
+  # Global default: every agent must confirm what it understood BEFORE
+  # acting, and confirm again immediately before any irreversible step
+  # (submitting, deleting, sending, moving files, etc). Per-agent
+  # settings below can make a specific agent even stricter, never looser.
+  require_double_confirmation: true
+
+brain:
+  # "rule_based" = free, fully offline, keyword/pattern command routing.
+  # "llm" = conversational + smart routing via Claude. Needs ANTHROPIC_API_KEY.
+  engine: "llm"
+  llm:
+    provider: "anthropic"
+    api_key_env_var: "ANTHROPIC_API_KEY"
+    model: "claude-haiku-4-5-20251001"   # fast + cheap; swap for claude-sonnet-4-6 for smarter replies
+
+voice:
+  default_language: "en"    # en | hi | de
+  default_gender: "female"  # female | male
+  languages:
+    en:
+      label: "English"
+      locale_codes: ["en_US", "en_GB", "en_IN"]
+      preferred_voices:
+        female: ["Samantha", "Flo (English (US))", "Sandy (English (US))", "Ava", "Zoe", "Victoria"]
+        male: ["Daniel", "Reed (English (US))", "Eddy (English (US))", "Alex", "Fred"]
+    de:
+      label: "German"
+      locale_codes: ["de_DE"]
+      preferred_voices:
+        female: ["Anna", "Petra"]
+        male: ["Markus"]
+    hi:
+      label: "Hindi"
+      locale_codes: ["hi_IN"]
+      preferred_voices:
+        # macOS does not reliably ship a bundled male Hindi voice.
+        # The app will detect what's actually installed on your Mac and
+        # tell you if a male Hindi voice is missing, with instructions
+        # to add one via System Settings > Accessibility > Spoken Content.
+        female: ["Lekha", "Isha"]
+        male: []
+  speech_rate_wpm: 163   # wpm — 160-170 sounds conversational, 185 sounds rushed
+
+# ============================================================
+# DAILY BRIEFING — morning voice summary (weather, calendar,
+# markets). Set daily_time to "" to disable auto-schedule.
+# ============================================================
+briefing:
+  enabled: true
+  daily_time: "08:00"   # 24h HH:MM — leave blank "" to disable auto
+
+stt:
+  engine: "faster_whisper"
+  model_size: "small"   # tiny | base | small | medium (bigger = more accurate, slower, larger download)
+  device: "cpu"
+  compute_type: "int8"
+  languages: ["en", "hi", "de"]
+
+# ============================================================
+# AGENTS — this is how you define what each agent is allowed
+# to do. Add a new block here to create a new agent; remove or
+# edit `allowed_actions` to change its duties. See README >
+# "Defining agent duties" for the full guide, including how to
+# add a brand-new custom agent.
+# ============================================================
+agents:
+  - id: system
+    name: "SENTRY"
+    color: "#00e5ff"
+    icon: "shield"
+    description: "Controls the Mac: opens/quits apps, volume, screenshots, locks the screen."
+    module: "agents.system_agent"
+    class: "SystemAgent"
+    enabled: true
+    requires_confirmation: true
+    allowed_actions: ["open_app", "quit_app", "set_volume", "take_screenshot", "lock_screen"]
+
+  - id: web
+    name: "SCOUT"
+    color: "#76ff03"
+    icon: "globe"
+    description: "Searches the web and opens websites for you."
+    module: "agents.web_agent"
+    class: "WebAgent"
+    enabled: true
+    requires_confirmation: true
+    allowed_actions: ["search_web", "open_url", "quick_search"]
+
+  - id: files
+    name: "VAULT"
+    color: "#e040fb"
+    icon: "folder"
+    description: "Finds, renames, moves, and organizes files inside approved folders only."
+    module: "agents.file_agent"
+    class: "FileAgent"
+    enabled: true
+    requires_confirmation: true
+    allowed_paths: ["~/Downloads", "~/Desktop", "~/Documents"]
+    allowed_actions: ["search_files", "move_file", "rename_file", "organize_folder"]
+
+  - id: reminders
+    name: "ECHO"
+    color: "#ff6d00"
+    icon: "bell"
+    description: "Creates reminders and calendar events via the macOS Reminders/Calendar apps."
+    module: "agents.reminder_agent"
+    class: "ReminderAgent"
+    enabled: true
+    requires_confirmation: true
+    allowed_actions: ["add_reminder", "add_event"]
+
+  - id: stocks
+    name: "QUANT"
+    color: "#00e676"
+    icon: "chart"
+    description: "Real-time stock quotes, market overview, movers, news, and personal watchlist."
+    module: "agents.stock_agent"
+    class: "StockAgent"
+    enabled: true
+    requires_confirmation: false   # read-only data, no confirmation needed
+    allowed_actions: ["get_quote", "get_market", "get_movers", "get_news", "watch_stock", "get_watchlist", "compare"]
+
+  - id: briefing
+    name: "ORACLE"
+    color: "#ffd740"
+    icon: "sun"
+    description: "Delivers a personalized morning briefing — weather, calendar, markets."
+    module: "agents.briefing_agent"
+    class: "BriefingAgent"
+    enabled: true
+    requires_confirmation: false   # read-only, execute immediately
+    allowed_actions: ["daily_brief", "get_weather", "get_time"]
+
+  - id: gmail
+    name: "HERMES"
+    color: "#ea4335"
+    icon: "mail"
+    description: "Reads your Gmail inbox — latest emails, unread count, message content."
+    module: "agents.gmail_agent"
+    class: "GmailAgent"
+    enabled: true
+    requires_confirmation: false   # read-only, executes immediately
+    allowed_actions: ["check_inbox", "read_latest"]
+
+  - id: jobs
+    name: "HERALD"
+    color: "#ffd600"
+    icon: "briefcase"
+    description: "Drafts and fills job applications from your saved profile/resume. Never submits without explicit double confirmation."
+    module: "agents.job_agent"
+    class: "JobApplicationAgent"
+    enabled: true
+    requires_confirmation: true
+    double_confirmation: true     # extra gate: confirm the draft, THEN confirm the submit
+    auto_submit: false            # hard safety default — see README before changing
+    profile_file: "profile/job_profile.yaml"
+    allowed_actions: ["draft_application", "fill_application", "submit_application"]
+
+# ============================================================
+# Your identity — used by agents (e.g. job applications, emails)
+# ============================================================
+user_profile:
+  name: "Neel"
+  email: "kneelesh951@gmail.com"
+  resume_path: "profile/resume.pdf"
+  phone: ""
+  links:
+    linkedin: ""
+    portfolio: ""
