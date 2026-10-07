@@ -2,8 +2,10 @@
 .env
 .env.*
 
-# Documentation
-*.md
+# Documentation (keep README, exclude internal docs)
+ARCHITECTURE.md
+DIA_ROADMAP.md
+CLAUDE_CODE_PROMPT.md
 
 # Python
 __pycache__/
